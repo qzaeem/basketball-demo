@@ -5,53 +5,40 @@ namespace Basketball_Demo.Gameplay
     [RequireComponent(typeof(Rigidbody))]
     public class BasketballController : MonoBehaviour
     {
-        [SerializeField] private float maxThrowForceHorizontal;
-        [SerializeField] private float maxThrowForceVertical;
-        [SerializeField] private float maxThrowAngle = 90;
-        [SerializeField] private float minThrowAngle = 15;
+        [SerializeField] private AudioSource audioSource;
+
+        private const string topTriggerTag = "Trigger Top";
+        private const string bottomTriggerTag = "Trigger Bottom";
+        private const string groundTag = "Ground";
+        private const string ringTag = "Ring";
+
+        private GameSettings Settings => GameSettingsProvider.Instance.GameSettings;
 
         private Rigidbody rb;
+        private bool topTriggerHit;
+        private bool checkCollision;
+        private bool shakeCamera;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
         }
 
-        //private void OnThrowBall((float speed, float angle, Vector2 direction) speedAngle)
-        //{
-        //    rb.isKinematic = false;
-
-        //    float angleDegrees = Mathf.LerpAngle(minThrowAngle, maxThrowAngle, speedAngle.angle);
-        //    float angleRad = angleDegrees * Mathf.Deg2Rad;
-
-        //    Vector3 horizontalDir = new Vector3(speedAngle.direction.x, 0f, speedAngle.direction.y).normalized;
-        //    float horizontalStrength = Mathf.Cos(angleRad);
-        //    float verticalStrength = Mathf.Sin(angleRad);
-        //    Vector3 finalDirection = horizontalDir * horizontalStrength + Vector3.up * verticalStrength;
-
-        //    rb.linearVelocity = finalDirection * speedAngle.speed * maxThrowForce;
-
-        //    EventManager.throwBallEvent -= OnThrowBall;
-        //}
-
         private void OnThrowBall((float speed, float angle, Vector2 direction) speedAngle)
         {
+            SoundManager.Instance.PlayOneShot(SoundManager.Instance.throwBall);
+
             rb.isKinematic = false;
 
-            // 1. Convert angle
-            float angleDegrees = Mathf.Lerp(minThrowAngle, maxThrowAngle, speedAngle.angle);
+            float angleDegrees = Mathf.Lerp(Settings.minThrowAngle, Settings.maxThrowAngle, speedAngle.angle);
             float angleRad = angleDegrees * Mathf.Deg2Rad;
 
-            // 2. Horizontal direction (XZ only)
             Vector3 horizontalDir = new Vector3(speedAngle.direction.x, 0f, speedAngle.direction.y).normalized;
 
-            // 3. Horizontal velocity (ONLY speed affects this)
-            Vector3 horizontalVelocity = horizontalDir * speedAngle.speed * maxThrowForceHorizontal;
+            Vector3 horizontalVelocity = horizontalDir * speedAngle.speed * Settings.maxThrowForceHorizontal;
 
-            // 4. Vertical velocity (ONLY angle affects this)
-            float verticalVelocity = Mathf.Sin(angleRad) * maxThrowForceVertical;
+            float verticalVelocity = Mathf.Sin(angleRad) * Settings.maxThrowForceVertical;
 
-            // 5. Combine
             Vector3 finalVelocity = new Vector3(
                 horizontalVelocity.x,
                 verticalVelocity,
@@ -74,7 +61,67 @@ namespace Basketball_Demo.Gameplay
             transform.localPosition = Vector3.zero;
             rb.isKinematic = true;
 
+            shakeCamera = true;
+            topTriggerHit = false;
+            checkCollision = true;
+
             EventManager.throwBallEvent += OnThrowBall;
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collision.collider.CompareTag(groundTag))
+            {
+                audioSource.PlayOneShot(SoundManager.Instance.ballHitGround);
+            }
+
+            if (collision.collider.CompareTag(ringTag))
+            {
+                audioSource.PlayOneShot(SoundManager.Instance.ballHitRing);
+
+                if (shakeCamera)
+                {
+                    shakeCamera = false;
+                    ObjectShaker.Instance.StartShake(0.5f);
+                }
+            }
+
+            if (!checkCollision || GameFlow.Instance.GameState.HasGameEnded)
+            {
+                return;
+            }
+
+            if (collision.collider.CompareTag(groundTag))
+            {
+                checkCollision = false;
+                EventManager.InvokeMissedBasketEvent();
+                return;
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!checkCollision || GameFlow.Instance.GameState.HasGameEnded)
+            {
+                return;
+            }
+
+            if(other.CompareTag(topTriggerTag))
+            {
+                topTriggerHit = true;
+                return;
+            }
+            
+            if(other.CompareTag(bottomTriggerTag) 
+                && topTriggerHit)
+            {
+                EventManager.InvokeMadeBasketEvent();
+                topTriggerHit= false;
+                checkCollision = false;
+                shakeCamera = false;
+
+                other.GetComponent<BasketAnimation>().PlayBasketAnimation();
+            }
         }
     }
 }

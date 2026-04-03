@@ -28,6 +28,11 @@ namespace Basketball_Demo.Gameplay
 
         protected virtual void ChangeInputStatus(bool isActive)
         {
+            if (GameFlow.Instance.GameState.HasGameEnded)
+            {
+                return;
+            }
+
             ReleaseInput();
 
             if (isActive)
@@ -75,9 +80,15 @@ namespace Basketball_Demo.Gameplay
             return (Mathf.Clamp01(throwSpeed / maxSpeed), Mathf.Clamp01(throwAngle), throwVector.normalized);
         }
 
-        protected virtual void OnInputUpdated(Vector2 endPosition, float maxInputValue)
+        protected virtual (float throwSpeed, float throwAngle, Vector2 direction) OnInputUpdate(Vector2 endPosition, float maxInputValue)
         {
-            // Implement if required
+            Vector2 throwVector = endPosition - inputStartPosition; // The input value
+            float elapsedTime = Time.unscaledTime - inputStartTime;
+            float maxSpeed = maxInputValue / minSwipeTime;
+            float throwSpeed = throwVector.magnitude / elapsedTime;
+            float throwAngle = throwVector.magnitude / (maxInputValue * inputScaleForMaxAngle);
+
+            return (Mathf.Clamp01(throwSpeed / maxSpeed), Mathf.Clamp01(throwAngle), throwVector.normalized);
         }
 
         protected abstract UniTask ScanInput();

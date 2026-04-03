@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99f53dd1af3199e40bd42d0f428d844a, type: 3}
+  m_Name: Settings
+  m_EditorClassIdentifier: Assembly-CSharp::Basketball_Demo.GameSettings
+  gameRounds:
+  - round: 1
+    roundScore: 6
+    pointsPerBasket: 1
+    distanceFromParent: 0
+    parentPosition: {x: 0, y: 0, z: 0}
+    basketLocalPositions:
+    - {x: 0, y: -0.01, z: 0}
+    - {x: 1.2, y: -0.01, z: 0}
+    - {x: -1.2, y: -0.01, z: 0}
+  - round: 2
+    roundScore: 6
+    pointsPerBasket: 2
+    distanceFromParent: 0
+    parentPosition: {x: 0, y: 0, z: 1}
+    basketLocalPositions: []
+  - round: 3
+    roundScore: 9
+    pointsPerBasket: 3
+    distanceFromParent: 0
+    parentPosition: {x: 0, y: 0, z: 0}
+    basketLocalPositions:
+    - {x: 0, y: -0.01, z: -1}
+    - {x: 1.2, y: -0.01, z: -1}
+    - {x: -1.2, y: -0.01, z: -1}
+  - round: 4
+    roundScore: 20
+    pointsPerBasket: 5
+    distanceFromParent: 1
+    parentPosition: {x: 0, y: 0, z: 1}
+    basketLocalPositions: []
+  maxMissesAllowed: 20
+  basketMoveDurationMultiplier: 0.8
+  maxThrowForceHorizontal: 15
+  maxThrowForceVertical: 7
+  maxThrowAngle: 60
+  minThrowAngle: 15

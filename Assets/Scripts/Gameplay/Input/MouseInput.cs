@@ -31,6 +31,7 @@ namespace Basketball_Demo.Gameplay
                 OnInputStarted(Input.mousePosition);
                 float elapsedDragDuration = dragEndDuration;
                 Vector2 lastMousePosition = Input.mousePosition;
+                Vector2 screenDiagonal = new Vector2(Screen.width, Screen.height);
 
                 while (Input.GetMouseButton(0))
                 {
@@ -48,9 +49,10 @@ namespace Basketball_Demo.Gameplay
                         elapsedDragDuration = dragEndDuration;
                         lastMousePosition = Input.mousePosition;
                     }
+
+                    EventManager.InvokeUpdateBallInputEvent(OnInputUpdate(Input.mousePosition, screenDiagonal.magnitude));
                 }
 
-                Vector2 screenDiagonal = new Vector2(Screen.width, Screen.height);
                 EventManager.InvokeThrowBallEvent(OnInputEnded(Input.mousePosition, screenDiagonal.magnitude));
 
                 await UniTask.WaitForSeconds(inputRefreshDuration / 2, cancellationToken: token);
